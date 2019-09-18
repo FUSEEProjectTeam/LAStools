@@ -57,6 +57,46 @@ class LASfilter;
 class LAStransform;
 class ByteStreamIn;
 
+struct CS_Point {
+	I32 X;
+	I32 Y;
+	I32 Z;	
+	U16 Intensity;
+	U8 Classification : 5;
+	U8 UserData;
+	U16 R;
+	U16 G;
+	U16 B;
+};
+
+struct CS_Header
+{
+	U8 PointDataFormat;
+
+	I64 PointCnt;
+
+	F64 ScaleFactorX;
+	F64 ScaleFactorY;
+	F64 ScaleFactorZ;
+	F64 OffsetX;
+	F64 OffsetY;
+	F64 OffsetZ;
+};
+
+extern "C" {
+	LASLIB_DLL void CS_OpenLasFile(char* filename, void*& lasFileHandle);
+
+	LASLIB_DLL void CS_GetHeader(void* lasFileHandle, CS_Header& header); // reader->header
+
+	LASLIB_DLL void CS_ReadNextPoint(void* lasFileHandle, bool& nextPoint); // reader->read_point
+
+	LASLIB_DLL void CS_GetPoint(void* lasFileHandle, CS_Point& csPoint); // reader->point
+
+	LASLIB_DLL void CS_Delete(void*& lasFileHandle);
+}
+
+
+
 class LASLIB_DLL LASreader
 {
 public:

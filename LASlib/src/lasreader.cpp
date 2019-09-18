@@ -51,6 +51,79 @@
 #include <stdlib.h>
 #include <string.h>
 
+void CS_OpenLasFile(char* filename, void*& lasFileHandle)
+{
+	LASreadOpener opener;
+	opener.set_file_name(filename);
+	LASreader *reader = opener.open();
+	lasFileHandle = reader;
+}
+
+void CS_GetHeader(void *lasFileHandle, CS_Header& headerRef)
+{
+	CS_Header header;
+
+	// cast to correct ptr 
+	auto fileHandle = static_cast<LASreader*>(lasFileHandle);
+
+	header.PointDataFormat = fileHandle->header.point_data_format;
+
+	header.PointCnt = fileHandle->npoints;
+	
+	header.ScaleFactorX = fileHandle->header.x_scale_factor;
+	header.ScaleFactorY = fileHandle->header.y_scale_factor;
+	header.ScaleFactorZ = fileHandle->header.z_scale_factor;
+
+	header.OffsetX = fileHandle->header.x_offset;
+	header.OffsetY = fileHandle->header.y_offset;
+	header.OffsetZ = fileHandle->header.z_offset;
+
+	headerRef = header;
+}
+
+void CS_ReadNextPoint(void *lasFileHandle, bool& nextPoint)
+{
+	// cast to correct ptr 
+	auto fileHandle = static_cast<LASreader*>(lasFileHandle);
+	nextPoint = fileHandle->read_point();
+}
+
+void CS_GetPoint(void *lasFileHandle, CS_Point& csPoint)
+{
+	CS_Point point;
+
+	// cast to correct ptr 
+	auto reader = static_cast<LASreader*>(lasFileHandle);
+
+	point.X = reader->point.X;
+	point.Y = reader->point.Y;
+	point.Z = reader->point.Z;
+
+	point.Classification = reader->point.classification;
+	point.UserData = reader->point.user_data;
+	point.Intensity = reader->point.intensity;
+
+	if (reader->point.have_rgb)
+	{
+		point.R = reader->point.rgb[0];
+		point.G = reader->point.rgb[1];
+		point.B = reader->point.rgb[2];
+	}
+	else {
+		point.R = static_cast<U16>(0);
+		point.G = static_cast<U16>(0);
+		point.B = static_cast<U16>(0);
+	}
+	
+	csPoint = point;
+}
+
+void CS_Delete(void*& lasFileHandle)
+{
+	if(lasFileHandle) delete static_cast<LASreader*>(lasFileHandle);
+}
+
+
 LASreader::LASreader()
 {
   npoints = 0;
